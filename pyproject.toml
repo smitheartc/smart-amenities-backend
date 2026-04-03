@@ -1,0 +1,24 @@
+[project]
+name = "smartamenitiesbackend"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Caleb Smitheart",email = "125583534+smitheartc@users.noreply.github.com"}
+]
+requires-python = ">=3.13,<3.14.1 || >3.14.1"
+dependencies = [
+    "fastapi[standard] (>=0.135.3,<0.136.0)",
+    "networkx (>=3.6.1,<4.0.0)",
+    "uvicorn[standard] (>=0.42.0,<0.43.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+packages = [{include = "app"}]
+
+[tool.poetry.scripts]
+start = "app.main:start"
