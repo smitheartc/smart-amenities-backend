@@ -1,18 +1,18 @@
-# app/database.py
+# app/core/database.py
+import os
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-# TODO: Replace with real db url and have this connect to Pooja's DB
-SQLALCHEMY_DATABASE_URL = "sqlite:///./smart_amenities.db"
+# Load variables from the .env file
+load_dotenv()
 
-# connect_args={"check_same_thread": False} is required for SQLite in FastAPI
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
+# Fetch the URL securely
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Dependency to inject the DB session into your routes
 def get_db():
     db = SessionLocal()
     try:

@@ -41,65 +41,40 @@ class CrowdLevel(enum.Enum):
         }
         return mapping.get(self, 0)
 
-class DirectionIcon(enum.Enum):
-    STRAIGHT = "STRAIGHT"
-    TURN_LEFT = "TURN_LEFT"
-    TURN_RIGHT = "TURN_RIGHT"
-    # ... include others (ELEVATOR_UP, ARRIVE, etc.)
-
 class Amenity(Base):
     __tablename__ = 'amenities'
 
-    id = Column(String, primary_key=True)
-    name = Column(String, nullable=False)
+    # 1. Strings with exact lengths
+    id = Column(String(50), primary_key=True)
+    name = Column(String(255), nullable=False)
     type = Column(Enum(AmenityType), nullable=False)
     floor = Column(Integer, nullable=False)
     
-    # Normalized map coordinates
+    # 2. Coordinates
     location_x = Column(Float, nullable=False)
     location_y = Column(Float, nullable=False)
     
-    status = Column(Enum(AmenityStatus), default=AmenityStatus.UNKNOWN)
-    crowd_level = Column(Enum(CrowdLevel), default=CrowdLevel.UNKNOWN)
+    # 3. Enums (Using server_default to match DB defaults)
+    status = Column(Enum(AmenityStatus), nullable=False, server_default='UNKNOWN')
+    crowd_level = Column(Enum(CrowdLevel), nullable=False, server_default='UNKNOWN')
     
-    estimated_walk_minutes = Column(Integer, default=0)
-    is_wheelchair_accessible = Column(Boolean, default=False)
-    is_step_free_route = Column(Boolean, default=False)
-    is_family_restroom = Column(Boolean, default=False)
-    is_gender_neutral = Column(Boolean, default=False)
+    # 4. Replaced estimated_walk_minutes with avg_usage_minutes
+    avg_usage_minutes = Column(Integer, nullable=False, default=6)
     
-    data_freshness_timestamp = Column(BigInteger)  # Unix millis
-    confidence_score = Column(Float, default=1.0)
-    gate_proximity = Column(String)
+    # 5. Booleans (TinyInt in MySQL) - all marked NOT NULL
+    is_wheelchair_accessible = Column(Boolean, nullable=False, default=False)
+    is_step_free_route = Column(Boolean, nullable=False, default=False)
+    is_family_restroom = Column(Boolean, nullable=False, default=False)
+    is_gender_neutral = Column(Boolean, nullable=False, default=False)
+    
+    confidence_score = Column(Float, nullable=False, default=0.0)
+    
+    # 6. String(100) and NOT NULL
+    gate_proximity = Column(String(100), nullable=False)
+    
+    # 7. Renamed from data_freshness_timestamp
+    last_updated = Column(BigInteger, nullable=False)
 
     def __repr__(self):
         return f"<Amenity(name='{self.name}', status='{self.status.value}')>"
     
-class Route(Base):
-    __tablename__ = 'routes'
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    amenity_id = Column(String, ForeignKey('amenities.id'))
-    total_walk_minutes = Column(Integer)
-    total_wait_minutes = Column(Integer)
-    is_step_free_route = Column(Boolean)
-    computed_at_timestamp = Column(BigInteger)
-
-    # Relationship to steps
-    steps = relationship("NavigationStep", back_populates="route", cascade="all, delete-orphan")
-
-class NavigationStep(Base):
-    __tablename__ = 'navigation_steps'
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    route_id = Column(Integer, ForeignKey('routes.id'))
-    step_number = Column(Integer, nullable=False)
-    instruction = Column(String, nullable=False)
-    direction_icon = Column(Enum(DirectionIcon))
-    distance_meters = Column(Float)
-    
-    # Floor transition stored as JSON or a composite; here we use a simple JSON blob 
-    # to mirror the FloorTransition data class without needing another table
-    floor_transition = Column(JSON, nullable=True) 
-
-    route = relationship("Route", back_populates="steps")
