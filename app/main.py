@@ -5,6 +5,8 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from app.services.terminal_d_graph_service import AirportMapService
 from app.api.routes import map  # Your router import
+from app.models.models import Base   # Adjust import path as needed based on where Models.py lives
+from app.core.database import engine
 
 def start():
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
@@ -14,6 +16,10 @@ MOCK_DATA_PATH = BASE_DIR / "data" / "mock_airport_nodes.json"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+
+    Base.metadata.create_all(bind=engine)
+
+
     # 1. Load the data
     with open(MOCK_DATA_PATH, "r") as file:
         airport_data = json.load(file)
