@@ -4,7 +4,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from app.services.terminal_d_graph_service import AirportMapService
-from app.api.routes import map, admin
+from app.api.routes import map, admin, auth
 from app.models.models import Base   # Adjust import path as needed based on where Models.py lives
 from app.core.database import engine
 
@@ -37,3 +37,4 @@ app = FastAPI(lifespan=lifespan)
 # Include your router AFTER the app is created
 app.include_router(map.router, tags=["Airport Map"])
 app.include_router(admin.router)
+app.include_router(auth.router)

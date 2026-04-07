@@ -2,6 +2,7 @@ from sqlalchemy import Column, String, Integer, Float, Boolean, ForeignKey, Enum
 from sqlalchemy.orm import relationship, declarative_base
 from datetime import datetime
 import enum
+import uuid
 
 Base = declarative_base()
 
@@ -105,4 +106,14 @@ class SimulationScenario(Base):
 
     def __repr__(self):
         return f"<SimulationScenario(name='{self.name}')>"
+    
+class User(Base):
+    __tablename__ = 'users'
+
+    # We use UUIDs for user IDs so they are unguessable
+    id = Column(String(50), primary_key=True, default=lambda: str(uuid.uuid4()))
+    first_name = Column(String(100), nullable=False)
+    last_name = Column(String(100), nullable=False)
+    email = Column(String(255), unique=True, index=True, nullable=False)
+    hashed_password = Column('password_hash', String(255), nullable=False)
     
