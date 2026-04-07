@@ -1,5 +1,6 @@
-from sqlalchemy import Column, String, Integer, Float, Boolean, ForeignKey, Enum, JSON, BigInteger
+from sqlalchemy import Column, String, Integer, Float, Boolean, ForeignKey, Enum, JSON, BigInteger, DateTime
 from sqlalchemy.orm import relationship, declarative_base
+from datetime import datetime
 import enum
 
 Base = declarative_base()
@@ -77,4 +78,31 @@ class Amenity(Base):
 
     def __repr__(self):
         return f"<Amenity(name='{self.name}', status='{self.status.value}')>"
+
+
+class CrowdReading(Base):
+    __tablename__ = 'crowd_readings'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    amenity_id = Column(String(50), ForeignKey('amenities.id'), nullable=False)
+    crowd_level = Column(Enum(CrowdLevel), nullable=False)
+    recorded_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    amenity = relationship('Amenity')
+
+    def __repr__(self):
+        return f"<CrowdReading(amenity_id='{self.amenity_id}', crowd_level='{self.crowd_level.value}')>"
+
+
+class SimulationScenario(Base):
+    __tablename__ = 'simulation_scenarios'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(255), nullable=False)
+    description = Column(String(1000), nullable=True)
+    # JSON structure: {"overrides": {"amenity_id": {"status": "...", "crowd_level": "..."}}}
+    config_json = Column(JSON, nullable=False)
+
+    def __repr__(self):
+        return f"<SimulationScenario(name='{self.name}')>"
     
