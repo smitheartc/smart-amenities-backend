@@ -50,12 +50,6 @@ def login(request: UserLoginRequest, db: Session = Depends(get_db)):
 @router.post("/logout")
 def logout():
     """
-    How logout works with JWTs:
-    JWTs are stateless. The server doesn't "store" them; it just verifies their math.
-    Therefore, a standard JWT "logout" actually happens on the Android device!
-    Android will delete the token from its local UserDataStore.kt.
-    
-    We provide this endpoint just so Android has something to call if it wants, 
-    but we just return a success message. 
+    Delete this: logout happens locally by deleting the token
     """
-    return {"message": "Successfully logged out. Please delete the token on the client device."}
+    return {"message": "this function does nothing."}
