@@ -2,11 +2,15 @@
 from datetime import datetime, timedelta, timezone
 import bcrypt
 import jwt
+import os
+from dotenv import load_dotenv
 
-# Secret key used to sign the VIP wristbands (Tokens). 
-SECRET_KEY = "my_super_secret_jwt_key_change_this_later"
+
+# Secret key used to sign the tokens. 
+load_dotenv()
+SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 # 7 days
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # 24 hours
 
 def hash_password(password: str) -> str:
     # 1. Convert string to bytes
