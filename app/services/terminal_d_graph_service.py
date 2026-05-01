@@ -21,37 +21,50 @@ class AirportMapService:
                 self.graph.nodes[amenity.id]['crowd_level'] = amenity.crowd_level
         
 
-    def get_recommendations(self, start_node: str,  target_type: AmenityType):
-        
-        
+    def get_recommendations(self, start_node: str, target_type: AmenityType):
         try:
             all_paths = nx.single_source_dijkstra_path(self.graph, source=start_node, weight='weight')
-            valid_destinations = []
+
+            open_results = []
+            unavailable_results = []
+
             for destination in all_paths:
-                #if desired amenity type and open
-                if (self.graph.nodes[destination].get('type') == target_type) and (self.graph.nodes[destination].get('status') == AmenityStatus.OPEN):
-                    valid_destinations.append(destination)
-            print(valid_destinations)
+                node = self.graph.nodes[destination]
+                if node.get('type') != target_type:
+                    continue
 
-            #cost calculation for each valid destination, building the response
-            results = []
-            for destination in valid_destinations:
-
+                status = node.get('status')
                 dest_path = all_paths[destination]
                 walk_time = nx.path_weight(self.graph, dest_path, "weight")
-                wait_time = self.graph.nodes[destination].get('crowd_level').wait_estimate_minutes * 60
+                crowd_level = node.get('crowd_level')
 
-                results.append(RouteOption(
-                amenity_id=destination,
-                path=dest_path,
-                walk_seconds=walk_time,
-                wait_seconds=wait_time,
-                total_seconds=walk_time + wait_time,
-                crowd_level=self.graph.nodes[destination].get('crowd_level'),
-                status=self.graph.nodes[destination].get('status')
-            ))
-                
-            return results
+                if status == AmenityStatus.OPEN:
+                    wait_time = crowd_level.wait_estimate_minutes * 60
+                    open_results.append(RouteOption(
+                        amenity_id=destination,
+                        path=dest_path,
+                        walk_seconds=walk_time,
+                        wait_seconds=wait_time,
+                        total_seconds=walk_time + wait_time,
+                        crowd_level=crowd_level,
+                        status=status
+                    ))
+                else:
+                    # Include closed/out-of-service amenities so clients can display
+                    # correct map pin status. Appended after all open results.
+                    unavailable_results.append(RouteOption(
+                        amenity_id=destination,
+                        path=dest_path,
+                        walk_seconds=walk_time,
+                        wait_seconds=0,
+                        total_seconds=walk_time,
+                        crowd_level=crowd_level,
+                        status=status
+                    ))
+
+            open_results.sort(key=lambda r: r.total_seconds)
+            print(f"Recommendations: {len(open_results)} open, {len(unavailable_results)} unavailable")
+            return open_results + unavailable_results
 
 
             
